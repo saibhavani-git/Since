@@ -1,0 +1,200 @@
+@import "tailwindcss";
+
+/*
+ * Since v2 design tokens — the Awake language.
+ * White canvas washed by soft blue→yellow gradient glows, near-black ink
+ * (#1b1d1e), one electric purple-blue (#4928fd) for the brand accent, and
+ * a family of warm pastels for tiles and data. Inter Tight carries the
+ * page; Instrument Serif italic carries the accent words. Buttons are
+ * pills; cards are rounded-3xl with hairline dark_black/10 borders.
+ */
+@theme {
+  --color-*: initial;
+
+  /* page */
+  --color-canvas: #ffffff; /* page */
+  --color-surface: #ffffff; /* cards */
+  --color-canvas-2: #f2f2f3; /* subtle fills: hover, tracks, skeletons */
+  --color-line: rgba(27, 29, 30, 0.1);
+  --color-line-2: rgba(27, 29, 30, 0.22);
+
+  /* ink — Awake's dark_black, also the dark product surface (story) */
+  --color-ink: #1b1d1e;
+  --color-ink-raised: #26282a;
+  --color-ink-raised-2: #313437;
+  --color-ink-line: rgba(255, 255, 255, 0.12);
+  --color-ink-line-2: rgba(255, 255, 255, 0.22);
+
+  --color-white: #ffffff;
+  --color-black: #000000;
+
+  --color-text: #1b1d1e;
+  --color-text-2: rgba(27, 29, 30, 0.6);
+  --color-text-3: rgba(27, 29, 30, 0.4);
+  --color-text-on-ink: #ffffff;
+  --color-text-on-ink-2: rgba(255, 255, 255, 0.6);
+  --color-text-on-ink-3: rgba(255, 255, 255, 0.4);
+
+  /* the dot, and data — purple_blue is the brand; rise/fall stay legible */
+  --color-iris: #4928fd;
+  --color-iris-strong: #3a1fd6;
+  --color-iris-tint: #ece8ff;
+  --color-iris-on-ink: #9c8bff;
+  --color-rise: #3fa52c;
+  --color-rise-strong: #348c24;
+  --color-rise-tint: #e9f7e4;
+  --color-rise-on-ink: #79d45e;
+  --color-fall: #e04d66;
+  --color-fall-strong: #c93a53;
+  --color-fall-tint: #fdecef;
+  --color-fall-on-ink: #f4889a;
+  --color-market: #a3a8b0;
+  --color-market-on-ink: #5a6270;
+  --color-stale: #d9822b;
+  --color-stale-tint: #fdf1d3;
+
+  /* Awake gradient tints — the hero glow */
+  --color-glow-blue: #d9f3fc;
+  --color-glow-yellow: #fdf1d3;
+
+  /*
+   * The Awake accent family — full strength for icons and small accents,
+   * exactly the template's five service colours plus its pale yellow.
+   */
+  --color-accent-purple: #ba81ee;
+  --color-accent-blue: #70b5ff;
+  --color-accent-orange: #ffaf68;
+  --color-accent-green: #79d45e;
+  --color-accent-pink: #f4889a;
+  --color-pale-yellow: #f6e683;
+
+  /*
+   * Tiles — the template's service-card look: each accent at 20% on white
+   * (bg-purple/20 etc. in Awake), plus pale-yellow at full strength the way
+   * the "Facts & numbers" card uses it.
+   */
+  --color-tile-lavender: #f1e6fc; /* purple/20 */
+  --color-tile-blush: #fde7eb; /* pink/20 */
+  --color-tile-sage: #e4f6df; /* green/20 */
+  --color-tile-slate: #e2f0ff; /* blue/20 */
+  --color-tile-apricot: #ffefe1; /* orange/20 */
+  --color-tile-pink: #fde7eb; /* pink/20 */
+  --color-tile-gold: #f6e683; /* pale-yellow, full */
+  --color-tile-violet: #f1e6fc; /* purple/20 */
+  --color-tile-mint: #e4f6df; /* green/20 */
+  --color-tile-sky: #e2f0ff; /* blue/20 */
+
+  /* Inter Tight carries the page; Instrument Serif italic for accents. */
+  --font-sans: var(--font-inter-tight), "Inter Tight", var(--font-devanagari), system-ui, sans-serif;
+  --font-display: var(--font-inter-tight), "Inter Tight", var(--font-devanagari), system-ui, sans-serif;
+  --font-serif: var(--font-instrument-serif), "Instrument Serif", Georgia, serif;
+  --font-wordmark: var(--font-inter-tight), "Inter Tight", system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), "Geist Mono", ui-monospace, monospace;
+
+  /* generous Awake radii — controls are pills (explicit rounded-full), cards are soft */
+  --radius-xs: 10px; /* small controls */
+  --radius-sm: 14px; /* small cards, menus */
+  --radius-md: 20px; /* cards */
+  --radius-lg: 24px; /* large tiles */
+
+  --shadow-card: 0px 1px 3px 0px rgba(0, 0, 0, 0.06);
+  --shadow-float: 0px 8px 30px rgba(27, 29, 30, 0.08);
+
+  --ease-fast: cubic-bezier(0.2, 0, 0, 1);
+  --ease-settle: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-draw: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-canvas text-text font-sans antialiased;
+    font-feature-settings: "tnum", "lnum";
+    letter-spacing: -0.01em;
+  }
+  ::selection {
+    background: var(--color-glow-yellow);
+  }
+  :focus-visible {
+    outline: 1.5px solid var(--color-ink);
+    outline-offset: 2px;
+    border-radius: 8px;
+  }
+  button,
+  [role="button"] {
+    cursor: pointer;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* Display: Inter Tight medium, tight tracking. Awake headline voice. */
+@utility display {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.02;
+  font-feature-settings: "tnum", "lnum";
+}
+
+/* The accent voice: Instrument Serif italic inside a display headline. */
+@utility serif-accent {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+/* Small label. Sentence case, medium weight. */
+@utility label {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.005em;
+  font-variant-numeric: tabular-nums;
+}
+
+@utility num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Story surface. */
+@utility ink-grid {
+  background-color: var(--color-ink);
+}
+
+/* Awake hero glow: soft blue → white → yellow wash, heavily blurred. */
+@utility hero-glow {
+  position: relative;
+}
+.hero-glow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  top: 6rem;
+  z-index: -10;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, var(--color-glow-blue), #ffffff, var(--color-glow-yellow));
+  filter: blur(64px);
+}
+
+/* Awake panel gradient: the framed blue→white→yellow band. */
+@utility panel-gradient {
+  background: linear-gradient(90deg, #cdeffb 0%, #ffffff 33.23%, #ffffff 65.77%, #fdeecb 100%);
+}
+
+/* Footer tape: two identical copies drift left; -50% loops seamlessly. */
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}

@@ -1,0 +1,21 @@
+"use client";
+
+import { motion, useReducedMotion } from "motion/react";
+import { cx } from "@/lib/cx";
+
+/** Fade-and-rise once when scrolled into view. */
+export function Reveal({ children, className, delay = 0, as = "div" }: { children: React.ReactNode; className?: string; delay?: number; as?: "div" | "section" | "li" | "article" }) {
+  const reduce = useReducedMotion();
+  const Tag = motion[as];
+  return (
+    <Tag
+      initial={reduce ? false : { opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-10% 0px" }}
+      transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay }}
+      className={cx(className)}
+    >
+      {children}
+    </Tag>
+  );
+}

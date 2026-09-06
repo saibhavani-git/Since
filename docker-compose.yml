@@ -1,0 +1,104 @@
+# Since — the whole group.
+#
+#   docker compose up -d postgres redis        # infrastructure only (local dev: run api/web with pnpm)
+#   docker compose --profile app up -d --build # everything: postgres, redis, api, worker, web
+#
+# With the app profile, the product is on http://localhost:3001 and the API on :4000.
+#
+name: since
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: since-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: since
+      POSTGRES_PASSWORD: since
+      POSTGRES_DB: since
+      TZ: UTC
+      PGTZ: UTC
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U since -d since"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+    command: postgres -c shared_buffers=128MB -c log_min_duration_statement=250ms
+
+  redis:
+    image: redis:7-alpine
+    container_name: since-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis:/data
+    # volatile-lru: only keys with a TTL (every cache entry) may be evicted under pressure;
+    # BullMQ's queue state has no TTL and is never touched. Do not use allkeys-*.
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy volatile-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+  api:
+    profiles: ["app"]
+    build: { context: ./api, target: runtime }
+    container_name: since-api
+    restart: unless-stopped
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    env_file: ./api/.env
+    environment:
+      HOST: 0.0.0.0
+      DATABASE_URL: postgres://since:since@postgres:5432/since
+      REDIS_URL: redis://redis:6379
+    ports:
+      - "${API_PORT:-4000}:4000"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4000/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  worker:
+    profiles: ["app"]
+    build: { context: ./api, target: runtime }
+    container_name: since-worker
+    restart: unless-stopped
+    command: ["node", "dist/worker.js"]
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    env_file: ./api/.env
+    environment:
+      DATABASE_URL: postgres://since:since@postgres:5432/since
+      REDIS_URL: redis://redis:6379
+
+  web:
+    profiles: ["app"]
+    build:
+      context: ./web
+      # Inlined into the browser bundle at build time; must be reachable from the host.
+      args: { NEXT_PUBLIC_API_URL: "${NEXT_PUBLIC_API_URL:-http://localhost:4000}" }
+    container_name: since-web
+    restart: unless-stopped
+    depends_on:
+      api: { condition: service_healthy }
+    ports:
+      - "${WEB_PORT:-3001}:3001"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3001"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  postgres:
+  redis:
